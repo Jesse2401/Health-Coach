@@ -64,17 +64,33 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration - allow common development ports
+# CORS configuration - allow common development ports and Vercel domains
+import os
+cors_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174"
+]
+
+# Add Vercel preview and production URLs if available
+vercel_url = os.getenv("VERCEL_URL")
+if vercel_url:
+    cors_origins.extend([
+        f"https://{vercel_url}",
+        f"https://*.vercel.app"  # Allow all Vercel deployments
+    ])
+
+# In production on Vercel, allow all origins for simplicity
+# You can restrict this to specific domains later
+if os.getenv("VERCEL"):
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174"
-    ],
+    allow_origins=cors_origins if cors_origins != ["*"] else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
